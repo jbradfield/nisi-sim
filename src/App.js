@@ -68,6 +68,13 @@ const GameState = {
 	GAME_END: "game_end",
 }
 
+const RowState = {
+  ACTIVE: "pr-active",
+  CORRECT: "pr-correct",
+  INCORRECT: "pr-incorrect",
+  SOLUTION: "pr-solution",
+}
+
 const Role = {
   TANK: "tank",
   HEALER: "healer",
@@ -386,6 +393,7 @@ class Simulator extends React.Component {
       partyOrder: null,
       party: null,
       correctIndex: null,
+      selectedIndex: null,
       turn: 0,
       score: 0,
       gameState: GameState.SETUP,
@@ -407,6 +415,32 @@ class Simulator extends React.Component {
     });
   }
 
+  goToSetup() {
+    this.setState({
+      pcJob: null,
+      partOrder: null,
+      party: null,
+      correctIndex: null,
+      selectedIndex: null,
+      turn: 0,
+      score: 0,
+      gameState: GameState.SETUP,
+    });
+  }
+
+  goToReady() {
+    for (let m in this.state.party) {
+      m.debuffs = [];
+    }
+    this.setState({
+      correctIndex: null,
+      selectedIndex: null,
+      turn: 0,
+      score: 0,
+      gameState: GameState.READY,
+    });
+  }
+
   startGame() {
     if (this.state.turn < 20) {
       assignDebuffs(this.state.party);
@@ -417,6 +451,20 @@ class Simulator extends React.Component {
         gameState: GameState.RUNNING,
       }, () => console.log(this.state.correctIndex));
     }
+  }
+
+  pickAnswer(index) {
+    this.setState({
+      selectedIndex: index,
+      score: (this.correctIndex === index ? this.state.score + 1 : this.state.score),
+      gameState: GameState.ROUND_END,
+    });
+  }
+
+  timeExpired() {
+    this.setState({
+      gameState: GameState.ROUND_END,
+    })
   }
   
   render() {
@@ -450,7 +498,12 @@ class Simulator extends React.Component {
             <PartyOrderFrame order={this.state.partyOrder}/>
           </div>
           <ReadyPrompt onClick={() => this.startGame()}/>
-          <PartyFrame party={this.state.party} active={false} onClick={() => null}/>
+          <div className="flex-row">
+            <PartyFrame 
+              party={this.state.party} 
+              active={false}
+            />
+          </div>
         </div>
       );
     }
@@ -462,15 +515,44 @@ class Simulator extends React.Component {
             <PartyOrderFrame order={this.state.partyOrder}/>
           </div>
           <RunningPrompt/>
-          <PartyFrame 
-            party={this.state.party} 
-            active={true}
-            onClick={i => alert(i === this.state.correctIndex ? "yes!" : "no!")}/>
+          <div className="flex-row">
+            <PartyFrame 
+              party={this.state.party} 
+              active={true}
+              onClick={i => this.pickAnswer(i)}
+            />
+            <CountdownFrame callback={() => this.timeExpired()}/>
+          </div>
         </div>
       );
     }
     else if (gstate === GameState.ROUND_END) {
-      // show result and prompt for next round
+      return (
+        <div>
+          <div className="flex-row setup-menu">
+            <PlayerJobFrame job={this.state.pcJob}/>
+            <PartyOrderFrame order={this.state.partyOrder}/>
+          </div>
+          <RunningPrompt/>
+          <div className="flex-row">
+            <PartyFrame 
+              party={this.state.party} 
+              active={false}
+              correct={this.state.correctIndex}
+              selected={this.state.selectedIndex}
+            />
+            <ResultFrame 
+              correct={this.state.correctIndex}
+              selected={this.state.selectedIndex}
+              turn={this.state.turn}
+              toNextRound={() => this.startGame()}
+              toReady={() => this.goToReady()}
+              toSetup={() => this.goToSetup()}
+            />
+          </div>
+
+        </div>
+      );
     }
     else if (gstate === GameState.GAME_END) {
       // show final results and prompt for restart/setup
@@ -636,7 +718,7 @@ function ReadyPrompt(props) {
           that represent a possible state right after Brute Justice casts Verdict.</p>
           <p>You will have <strong>8 seconds</strong> to identify and click your
           partner, which is the amount of time between Verdict resolving and Plasma
-          shield spawning.</p>
+          shield spawning. (NYI)</p>
           <p>This exercise will repeat 20 times, or until you choose to quit. At the
           end of your session, I'll count up your successes and give you a score. Aim
           for the top!</p>
@@ -654,12 +736,21 @@ function ReadyPrompt(props) {
 class PartyFrame extends React.Component {
   render() {
     let pData = this.props.party.map((m, i) => {
+        let states = [];
+        if (this.props.active)
+          states.push(RowState.ACTIVE);
+        if (i === this.props.correct && this.props.correct === this.props.selected)
+          states.push(RowState.CORRECT);
+        else if (i === this.props.correct)
+          states.push(RowState.SOLUTION);
+        else if (i === this.props.selected)
+          states.push(RowState.INCORRECT);
         return (
           <Player 
             key={m.job} 
             index={i} 
             data={m} 
-            active={this.props.active} 
+            states={states}
             onClick={() => this.props.onClick(i)}/>
         );
       });
@@ -679,7 +770,10 @@ class PartyFrame extends React.Component {
 
 class Player extends React.Component {
   render() {
-    let cName = "player-row" + (this.props.active ? " pr-active" : "");
+    let cName = "player-row";
+    for (let state of this.props.states) {
+      cName += " " + state;
+    }
     let data = this.props.data;
     let idx = this.props.index + 1;
     let debuffs = data.debuffs == null ? null : data.debuffs.map((d, i) => {
@@ -742,6 +836,37 @@ function RunningPrompt(props) {
   );
 }
 
+class CountdownFrame extends React.Component {
+  render() {
+    return null;
+  }
+}
+
+// *******************
+// * Round End Phase *
+// *******************
+
+class ResultFrame extends React.Component {
+  render() {
+    let p = this.props;
+    let msg;
+    if (p.selected == null)
+      msg = "You ran out of time. The correct answer is highlighted.";
+    else if (p.correct === p.selected)
+      msg = "Correct!";
+    else
+      msg = "Incorrect. The correct answer is highlighted.";
+
+    return (
+      <div>
+        <p>{msg}</p>
+        <div className="flex-row">
+          <button onClick={p.toNextRound}>Next Round</button>
+        </div>
+      </div>
+    );
+  }
+}
 
 // ===================
 // = UTILITY METHODS =
