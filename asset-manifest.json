@@ -1,22 +1,22 @@
 {
   "files": {
-    "main.css": "/nisi-sim/static/css/main.bc0a0654.chunk.css",
-    "main.js": "/nisi-sim/static/js/main.ae737a1d.chunk.js",
-    "main.js.map": "/nisi-sim/static/js/main.ae737a1d.chunk.js.map",
+    "main.css": "/nisi-sim/static/css/main.227bb62a.chunk.css",
+    "main.js": "/nisi-sim/static/js/main.dcc4908b.chunk.js",
+    "main.js.map": "/nisi-sim/static/js/main.dcc4908b.chunk.js.map",
     "runtime-main.js": "/nisi-sim/static/js/runtime-main.2222b064.js",
     "runtime-main.js.map": "/nisi-sim/static/js/runtime-main.2222b064.js.map",
     "static/js/2.1532e5b1.chunk.js": "/nisi-sim/static/js/2.1532e5b1.chunk.js",
     "static/js/2.1532e5b1.chunk.js.map": "/nisi-sim/static/js/2.1532e5b1.chunk.js.map",
     "index.html": "/nisi-sim/index.html",
-    "precache-manifest.ad20a5cb8b76ae1dca269bb0824cfe5a.js": "/nisi-sim/precache-manifest.ad20a5cb8b76ae1dca269bb0824cfe5a.js",
+    "precache-manifest.bb6bca104bdeb1c859d5c2c395047de0.js": "/nisi-sim/precache-manifest.bb6bca104bdeb1c859d5c2c395047de0.js",
     "service-worker.js": "/nisi-sim/service-worker.js",
-    "static/css/main.bc0a0654.chunk.css.map": "/nisi-sim/static/css/main.bc0a0654.chunk.css.map",
+    "static/css/main.227bb62a.chunk.css.map": "/nisi-sim/static/css/main.227bb62a.chunk.css.map",
     "static/js/2.1532e5b1.chunk.js.LICENSE.txt": "/nisi-sim/static/js/2.1532e5b1.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.2222b064.js",
     "static/js/2.1532e5b1.chunk.js",
-    "static/css/main.bc0a0654.chunk.css",
-    "static/js/main.ae737a1d.chunk.js"
+    "static/css/main.227bb62a.chunk.css",
+    "static/js/main.dcc4908b.chunk.js"
   ]
 }

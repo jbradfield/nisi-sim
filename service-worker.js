@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/nisi-sim/precache-manifest.ad20a5cb8b76ae1dca269bb0824cfe5a.js"
+  "/nisi-sim/precache-manifest.bb6bca104bdeb1c859d5c2c395047de0.js"
 );
 
 self.addEventListener('message', (event) => {
