@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&display=swap');
 
 .App {
   /* text-align: center; */
@@ -65,22 +66,34 @@ div.flex-row {
 }
 
 table.party-frame {
-  background: black;
+  background: rgb(0,0,0);
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 90%); 
+  width: 460px;
   color: rgb(232, 255, 255);
   font-family: 'Myriad', 'Arial', sans-serif;
   font-weight: bold;
   margin: 30px;
 }
 
+table.party-frame th {
+  color:rgb(255, 249, 232);
+  text-align: left;
+  font-weight: bold;
+  position: relative;
+  left: -8px;
+  bottom: -4px;
+  font-family: 'Syncopate', sans-serif;
+}
+
 tr.player-row {
-  height: 54px;
+  height: 52px;
 }
 
 tr.player-row>td {
   vertical-align: top;
 }
 
-td {
+th, td {
   padding: 0;
 }
 
@@ -90,13 +103,14 @@ td {
 
 td.debuff-frame {
   padding-left: 12px;
+  width: 140px;
 }
 
 .name-row {
   height: 18px;
 }
 
-.vitals-row {
+.vital-bars {
   height: 24px;
   text-align: right;
 }
@@ -163,6 +177,7 @@ img.debuff {
   width: 32px;
   position: relative;
   top: -8px;
+  margin-right:2px;
 }
 
 div.select-job-frame, div.select-order-frame {
@@ -230,6 +245,10 @@ div.ready-prompt>p {
 }
 
 div.go-wrapper {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+  align-items: center;
   text-align:center;
   height:45px;
 }

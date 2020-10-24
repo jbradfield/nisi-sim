@@ -641,6 +641,9 @@ class PartyFrame extends React.Component {
 
     return (
       <table className="party-frame">
+        <thead>
+          <tr><th colSpan="3">FULL PARTY</th></tr>
+        </thead>
         <tbody>
           {pData}
         </tbody>
