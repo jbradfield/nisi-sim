@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .App {
   /* text-align: center; */
@@ -53,6 +54,9 @@ img.job-icon {
 
 img.job-icon-sm {
   width: 24px;
+  vertical-align: middle;
+  position: relative;
+  top: -2px;
 }
 
 div.flex-row {
@@ -65,6 +69,7 @@ table.party-frame {
   color: rgb(232, 255, 255);
   font-family: 'Myriad', 'Arial', sans-serif;
   font-weight: bold;
+  margin: 30px;
 }
 
 tr.player-row {
@@ -176,6 +181,7 @@ button.select-job {
 div.setup-menu {
   width: 100%;
   justify-content: space-around;
+  margin: 20px 0;
 }
 
 img.role-icon {
@@ -200,8 +206,35 @@ div.end-setup-container {
   text-align: center;
 }
 
-button.end-setup {
+button.end-setup, button.go-button {
   font-size: 24px;
   font-weight: bold;
   padding: 5px 15px;
+}
+
+div.ready-prompt {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+  width: 650px;
+  height: 230px;
+  background: #ddd;
+  padding: 1px 20px;
+  margin: 15px;
+  margin-top: 25px;
+  vertical-align: middle;
+}
+
+div.ready-prompt>p {
+  margin: 5px 0;
+}
+
+div.go-wrapper {
+  text-align:center;
+  height:45px;
+}
+
+div.hijacked-prompt {
+  align-items: center;
+  font-family: 'Share Tech Mono', monospace;
 }

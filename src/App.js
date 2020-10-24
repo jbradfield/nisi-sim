@@ -72,7 +72,8 @@ const Role = {
   TANK: "tank",
   HEALER: "healer",
   MELEE: "melee",
-  RANGED: "ranged"
+  RANGED: "ranged",
+  CASTER: "caster",
 }
 
 const PartyOrder = {
@@ -80,38 +81,44 @@ const PartyOrder = {
     [Role.TANK]:   100,
     [Role.HEALER]: 200,
     [Role.MELEE]:  300,
-    [Role.RANGED]: 300
+    [Role.RANGED]: 300,
+    [Role.CASTER]: 300,
   },
   TDH: {
     [Role.TANK]:   100,
     [Role.HEALER]: 300,
     [Role.MELEE]:  200,
-    [Role.RANGED]: 200
+    [Role.RANGED]: 200,
+    [Role.CASTER]: 200,
   },
   HTD: {
     [Role.TANK]:   200,
     [Role.HEALER]: 100,
     [Role.MELEE]:  300,
-    [Role.RANGED]: 300
+    [Role.RANGED]: 300,
+    [Role.CASTER]: 300,
   },
   HDT: {
     [Role.TANK]:   300,
     [Role.HEALER]: 100,
     [Role.MELEE]:  200,
-    [Role.RANGED]: 200
+    [Role.RANGED]: 200,
+    [Role.CASTER]: 200,
   },
   DTH: {
     [Role.TANK]:   200,
     [Role.HEALER]: 300,
     [Role.MELEE]:  100,
-    [Role.RANGED]: 100
+    [Role.RANGED]: 100,
+    [Role.CASTER]: 100,
   },
   DHT: {
     [Role.TANK]:   300,
     [Role.HEALER]: 200,
     [Role.MELEE]:  100,
-    [Role.RANGED]: 100
-  }
+    [Role.RANGED]: 100,
+    [Role.CASTER]: 100,
+  },
 }
 
 const Players = {
@@ -230,7 +237,7 @@ const Players = {
   BLM: {
     name: "Megu Min",
     job: "BLM",
-    role: Role.RANGED,
+    role: Role.CASTER,
     icon: Images.JOB_BLM,
     sortOrder: 14,
 	debuffs: [],
@@ -238,7 +245,7 @@ const Players = {
   SMN: {
     name: "Bahamut F***er",
     job: "SMN",
-    role: Role.RANGED,
+    role: Role.CASTER,
     icon: Images.JOB_SMN,
     sortOrder: 15,
 	debuffs: [],
@@ -246,7 +253,7 @@ const Players = {
   RDM: {
     name: "Verjoke Vername",
     job: "RDM",
-    role: Role.RANGED,
+    role: Role.CASTER,
     icon: Images.JOB_RDM,
     sortOrder: 16,
 	debuffs: [],
@@ -351,6 +358,11 @@ const Debuffs = {
 // = REACT COMPONENTS =
 // ====================
 
+
+// *************
+// * Simulator *
+// *************
+
 class Simulator extends React.Component {
   constructor(props) {
     super(props);
@@ -359,53 +371,85 @@ class Simulator extends React.Component {
       partyOrder: null,
       party: null,
       correctIndex: null,
-      turn: null,
-      score: null,
+      turn: 0,
+      score: 0,
       gameState: GameState.SETUP,
     };
   }
 
-  selectPcJob(job) {
+  setPcJob(job) {
     this.setState({pcJob: job});
   }
 
-  selectPartyOrder(order) {
+  setPartyOrder(order) {
     this.setState({partyOrder: order});
   }
 
-  setGameState(state) {
-    this.setState({gameState: state});
+  completeSetup() {
+    this.setState({
+      party: generateParty(Players[this.state.pcJob], PartyOrder[this.state.partyOrder]),
+      gameState: GameState.READY,
+    });
+  }
+
+  startGame() {
+    if (this.state.turn < 20) {
+      this.setState({
+        turn: this.state.turn + 1,
+        gameState: GameState.RUNNING,
+      });
+
+      assignDebuffs(this.state.party);
+    }
+    
   }
   
   render() {
     let gstate = this.state.gameState;
     if (gstate === GameState.SETUP) {
-      let confirmDiv = null;
       return (
         <div>
           <div className="flex-row setup-menu">
             <SelectJobFrame 
               selectedJob={this.state.pcJob}
-              handler={j => this.selectPcJob(j)}
+              handler={j => this.setPcJob(j)}
             />
             <SelectPartyOrderFrame
               selectedOrder = {this.state.partyOrder}
-              handler={o => this.selectPartyOrder(o)}
+              handler={o => this.setPartyOrder(o)}
             />
           </div>
           <EndSetupButton 
             pcJob={this.state.pcJob} 
             partyOrder={this.state.partyOrder}
-            onClick={() => this.setGameState(GameState.READY)}
+            onClick={() => this.completeSetup()}
           />
         </div>
       );
     }
     else if (gstate === GameState.READY) {
-      return (<p>test</p>);
+      return (
+        <div>
+          <div className="flex-row setup-menu">
+            <PlayerJobFrame job={this.state.pcJob}/>
+            <PartyOrderFrame order={this.state.partyOrder}/>
+          </div>
+          <ReadyPrompt onClick={() => this.startGame()}/>
+          <PartyFrame party={this.state.party}/>
+        </div>
+      );
     }
     else if (gstate === GameState.RUNNING) {
-      // show timer and prompt for answer
+      return (
+        <div>
+          <div className="flex-row setup-menu">
+            <PlayerJobFrame job={this.state.pcJob}/>
+            <PartyOrderFrame order={this.state.partyOrder}/>
+          </div>
+          <RunningPrompt/>
+          <PartyFrame party={this.state.party}/>
+        </div>
+      );
     }
     else if (gstate === GameState.ROUND_END) {
       // show result and prompt for next round
@@ -413,33 +457,12 @@ class Simulator extends React.Component {
     else if (gstate === GameState.GAME_END) {
       // show final results and prompt for restart/setup
     }
-    
-    // TODO -- make this, uh, stateful
-    // this.setState({party: generateParty()});
-    
-    this.state.party = generateParty();
-    assignDebuffs(this.state.party);
-    
-    let pData = this.state.party.map((m, i) => {
-        return <Player key={m.job} index={i} data={m}/>;
-      });
-    
-    return <PartyFrame party={pData}/>
   }
 }
 
-function EndSetupButton(props) {
-  if (props.pcJob !== null && props.partyOrder !== null) {
-    return (
-      <div className="end-setup-container">
-        <button className="end-setup" onClick={props.onClick}>
-          All set!
-        </button>
-      </div>
-    );
-  }
-  return null;
-}
+// ***************
+// * Setup Phase *
+// ***************
 
 class SelectJobFrame extends React.Component {
   genButton(job) {
@@ -503,35 +526,6 @@ function SelectJobButton(props) {
 }
 
 class SelectPartyOrderFrame extends React.Component {
-  generateLabel(order) {
-    let spans = [];
-    for (let i = 0; i < order.length; i++) {
-      let c = order.charAt(i);
-      if (c === 'T') {
-        spans.push(
-          <span className="order-sp" key="T">
-            <img className="role-icon" src={Images.ROLE_TANK} alt="Tank"/> Tank
-          </span>
-        );
-      }
-      else if (c === 'H') {
-        spans.push(
-          <span className="order-sp" key="H">
-            <img className="role-icon" src={Images.ROLE_HEALER} alt="Healer"/> Healer
-          </span>
-        );
-      }
-      else if (c === 'D') {
-        spans.push(
-          <span className="order-sp" key="D">
-            <img className="role-icon" src={Images.ROLE_DPS} alt="DPS"/> DPS
-          </span>
-        );
-      }
-    }
-    return spans;
-  }
-
   render() {
     let h = this.props.handler;
 
@@ -540,22 +534,22 @@ class SelectPartyOrderFrame extends React.Component {
         <div className="select-order-frame">
           <h2>Select Party Order</h2>
           <button className="party-order" onClick={() => h("THD")}>
-            {this.generateLabel("THD")}
+            {generateOrderLabel("THD")}
           </button>
           <button className="party-order" onClick={() => h("TDH")}>
-            {this.generateLabel("TDH")}
+            {generateOrderLabel("TDH")}
           </button>
           <button className="party-order" onClick={() => h("HTD")}>
-            {this.generateLabel("HTD")}
+            {generateOrderLabel("HTD")}
           </button>
           <button className="party-order" onClick={() => h("HDT")}>
-            {this.generateLabel("HDT")}
+            {generateOrderLabel("HDT")}
           </button>
           <button className="party-order" onClick={() => h("DTH")}>
-            {this.generateLabel("DTH")}
+            {generateOrderLabel("DTH")}
           </button>
           <button className="party-order" onClick={() => h("DHT")}>
-            {this.generateLabel("DHT")}
+            {generateOrderLabel("DHT")}
           </button>
           <p><i>(You will always appear at the top.)</i></p>
         </div>
@@ -566,7 +560,7 @@ class SelectPartyOrderFrame extends React.Component {
         <div className="select-order-frame">
           <h2>Your Party Order:</h2>
           <div>
-            {this.generateLabel(this.props.selectedOrder)}
+            {generateOrderLabel(this.props.selectedOrder)}
           </div>
           <p><i>(You will always appear at the top.)</i></p>
           <button onClick={() => h(null)}>
@@ -578,12 +572,77 @@ class SelectPartyOrderFrame extends React.Component {
   }
 }
 
+function EndSetupButton(props) {
+  if (props.pcJob !== null && props.partyOrder !== null) {
+    return (
+      <div className="end-setup-container">
+        <button className="end-setup" onClick={props.onClick}>
+          All set!
+        </button>
+      </div>
+    );
+  }
+  return null;
+}
+
+// ***************
+// * Ready Phase *
+// ***************
+
+function PlayerJobFrame(props) {
+  return (
+    <div><strong>
+      Your Job:&nbsp;
+      <img className="job-icon-sm" src={Players[props.job].icon} alt={props.job}/>&nbsp;
+      {props.job}
+    </strong></div>
+  );
+}
+
+function PartyOrderFrame(props) {
+  return (
+    <div>
+      <strong>Party Order:&nbsp;</strong>
+      {generateOrderLabel(props.order)}
+    </div>
+  );
+}
+
+function ReadyPrompt(props) {
+  return (
+    <div>
+      <div className="flex-row setup-menu">
+        <div className="ready-prompt">
+          <p>I've made a party for you below. The job you picked is at the top.</p>
+          <p>When you hit the go button, the party will be hit with a suite of debuffs 
+          that represent a possible state right after Brute Justice casts Verdict.</p>
+          <p>You will have <strong>8 seconds</strong> to identify and click your
+          partner, which is the amount of time between Verdict resolving and Plasma
+          shield spawning.</p>
+          <p>This exercise will repeat 20 times, or until you choose to quit. At the
+          end of your session, I'll count up your successes and give you a score. Aim
+          for the top!</p>
+        </div>
+      </div>
+      <div className="go-wrapper">
+        <button className="go-button" onClick={props.onClick}>
+          Let's Do Some Math!
+        </button>
+      </div>
+    </div>
+  );
+}
+
 class PartyFrame extends React.Component {
   render() {
+    let pData = this.props.party.map((m, i) => {
+        return <Player key={m.job} index={i} data={m}/>;
+      });
+
     return (
       <table className="party-frame">
         <tbody>
-          {this.props.party}
+          {pData}
         </tbody>
       </table>
     );
@@ -594,9 +653,9 @@ class Player extends React.Component {
   render() {
     let data = this.props.data;
     let idx = this.props.index + 1;
-  let debuffs = data.debuffs.map((d, i) => {
-    return <Debuff key={i} debuff={d}/>;
-  });
+    let debuffs = data.debuffs == null ? null : data.debuffs.map((d, i) => {
+      return <Debuff key={i} debuff={d}/>;
+    });
 
     return (
       <tr className="player-row">
@@ -633,6 +692,28 @@ function Debuff(props) {
   return <img className="debuff" src={props.debuff.icon} alt={props.debuff.name}/>;
 }
 
+// *****************
+// * Running Phase *
+// *****************
+
+function RunningPrompt(props) {
+  return (
+    <div>
+      <div className="flex-row setup-menu">
+        <div className="ready-prompt hijacked-prompt">
+          <p>Designation: Brute Justice. Temporal interlopers identified.</p>
+          <p>Verdict: Guilty. Punishment: Execution!</p>
+          <p>Initiating new combat protocol... Commence final judgment!</p>
+        </div>
+      </div>
+      <div className="go-wrapper hijacked-prompt">
+        <p>Identify your partner.</p>
+      </div>
+    </div>
+  );
+}
+
+
 // ===================
 // = UTILITY METHODS =
 // ===================
@@ -644,36 +725,46 @@ function shuffleArray(array) {
     }
 }
 
-function generateParty() {
-	let party = [];
-	// 2 tanks
+function generateParty(pcJob, partyOrder) {
+	console.log(pcJob);
+  let party = [];
+  let numTanks = 2 - (pcJob.role === Role.TANK ? 1 : 0);
+  let numHealers = 2 - (pcJob.role === Role.HEALER ? 1 : 0);
+  let numMelee = (Math.random() * 2 | 0) + 1;
+  let numRanged = 1 - (pcJob.role === Role.RANGED ? 1 : 0);
+  let numCasters = 3 - numMelee - (pcJob.role === Role.CASTER ? 1 : 0);
+  numMelee -= (pcJob.role === Role.MELEE ? 1 : 0);
+	// tanks
 	let tanks = Jobs.TANK.slice();
 	shuffleArray(tanks);
-	for (let i = 0; i < 2; i++) 
+	for (let i = 0; i < numTanks; i++) 
     party.push({...tanks[i]});
-	// 2 healers
+	// healers
 	let healers = Jobs.HEALER.slice();
 	shuffleArray(healers);
-	for (let i = 0; i < 2; i++) 
+	for (let i = 0; i < numHealers; i++) 
     party.push({...healers[i]});
-	// 1-2 melee
-	let numMelee = (Math.random() * 2 | 0) + 1;
+	// melee
 	let melee = Jobs.MELEE.slice();
 	shuffleArray(melee);
 	for (let i = 0; i < numMelee; i++) 
     party.push({...melee[i]});
-	// 1 ranged
+	// ranged
 	let ranged = Jobs.RANGED.slice();
 	shuffleArray(ranged);
-	party.push({...ranged[0]});
-	// 1-2 casters
-	let numCasters = 3 - numMelee;
+  for (let i = 0; i < numRanged; i++)
+	party.push({...ranged[i]});
+	// casters
 	let casters = Jobs.CASTER.slice();
 	shuffleArray(casters);
 	for (let i = 0; i < numCasters; i++) 
     party.push({...casters[i]});
+
+  party.sort((a, b) => (a.sortOrder + partyOrder[a.role]) - (b.sortOrder + partyOrder[b.role]));
+
+  let fullParty = [{...pcJob}].concat(party);
 	
-	return party;	
+	return fullParty;	
 }
 
 function assignDebuffs(party) {
@@ -684,7 +775,7 @@ function assignDebuffs(party) {
 	shuffleArray(healers);
 	healers.pop().debuffs.push(Debuffs.COMPRESSED_LIGHTNING);
 	// create a pool of ranged + unused healer from above
-	let pool = party.filter(m => m.role === Role.RANGED).concat(healers);
+	let pool = party.filter(m => m.role === Role.RANGED || m.role === Role.CASTER).concat(healers);
 	shuffleArray(pool);
 	// compressed water on random ranged/healer (removes from pool)
 	pool.pop().debuffs.push(Debuffs.COMPRESSED_WATER);
@@ -702,7 +793,7 @@ function assignDebuffs(party) {
 	th[2].debuffs.push(Debuffs.JUDGMENT_GAMMA);
 	th[3].debuffs.push(Debuffs.JUDGMENT_DELTA);
 	// judgment (set 1) on all DPS
-	let dps = party.filter(m => m.role === Role.MELEE || m.role === Role.RANGED);
+	let dps = party.filter(m => m.role === Role.MELEE || m.role === Role.RANGED || m.role === Role.CASTER);
 	shuffleArray(dps);
 	dps[0].debuffs.push(Debuffs.JUDGMENT_ALPHA);
 	dps[1].debuffs.push(Debuffs.JUDGMENT_BETA);
@@ -717,4 +808,33 @@ function assignDebuffs(party) {
 	nisi[3].debuffs.push(Debuffs.NISI_DELTA);
 	// sort debuffs
 	party.forEach(m => m.debuffs.sort((a, b) => a.sortOrder - b.sortOrder));
+}
+
+function generateOrderLabel(order) {
+  let spans = [];
+  for (let i = 0; i < order.length; i++) {
+    let c = order.charAt(i);
+    if (c === 'T') {
+      spans.push(
+        <span className="order-sp" key="T">
+          <img className="role-icon" src={Images.ROLE_TANK} alt="Tank"/> Tank
+        </span>
+      );
+    }
+    else if (c === 'H') {
+      spans.push(
+        <span className="order-sp" key="H">
+          <img className="role-icon" src={Images.ROLE_HEALER} alt="Healer"/> Healer
+        </span>
+      );
+    }
+    else if (c === 'D') {
+      spans.push(
+        <span className="order-sp" key="D">
+          <img className="role-icon" src={Images.ROLE_DPS} alt="DPS"/> DPS
+        </span>
+      );
+    }
+  }
+  return spans;
 }
