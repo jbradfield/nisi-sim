@@ -40,11 +40,19 @@
   }
 }
 
+div.title {
+  padding-left: 30px;
+}
+
 img.job-icon {
   width: 40px;
   height: 40px;
   vertical-align: top;
   padding-right: 3px;
+}
+
+img.job-icon-sm {
+  width: 24px;
 }
 
 div.flex-row {
@@ -67,8 +75,16 @@ tr.player-row>td {
   vertical-align: top;
 }
 
+td {
+  padding: 0;
+}
+
 .castbar-row {
   height: 10px;
+}
+
+td.debuff-frame {
+  padding-left: 12px;
 }
 
 .name-row {
@@ -98,18 +114,25 @@ tr.player-row>td {
 
 .player-level {
   margin-right: 4px;
-  font-size: 14px;
+  font-size: 15px;
+  font-family: 'Montserrat', sans-serif;
+  position: relative;
 }
 
 .player-name {
-  font-size: 16px;
+  font-size: 18px;
+  position: relative;
+  bottom: 1px;
+  z-index: 2;
 }
 
 .bar {
   background: rgb(232, 255, 255);
+  box-shadow: 0 0 2px 2px rgb(100, 150, 255);
   width: 115px;
-  height: 10px;
+  height: 8px;
   border-radius: 2px;
+  z-index: -1;
 }
 
 .hp {
@@ -122,8 +145,63 @@ tr.player-row>td {
 
 .bar-num {
   margin-top: -2px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
 }
 
 .mp-small {
   font-size: 12px;
+  padding-left: 2px;
+}
+
+img.debuff {
+  width: 32px;
+  position: relative;
+  top: -8px;
+}
+
+div.select-job-frame, div.select-order-frame {
+  width:300px;
+  text-align: center;
+  font-size: 14px;
+}
+
+button.select-job {
+  border: 0;
+  padding: 0;
+  margin: 0 3px;
+  cursor: pointer;
+}
+
+div.setup-menu {
+  width: 100%;
+  justify-content: space-around;
+}
+
+img.role-icon {
+  height: 24px;
+  vertical-align: middle;
+  padding-bottom: 2px;
+}
+
+button.party-order {
+  font-size: 14px;
+}
+
+span.order-sp {
+  display:inline-block;
+  width: 75px;
+  text-align: left;
+}
+
+div.end-setup-container {
+  padding-top: 50px;
+  width: 100%;
+  text-align: center;
+}
+
+button.end-setup {
+  font-size: 24px;
+  font-weight: bold;
+  padding: 5px 15px;
 }
