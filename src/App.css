@@ -2,6 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&display=swap');
 
+body {
+  background: #f4f4f4;
+}
+
 .App {
   /* text-align: center; */
   margin-left: 30px;
@@ -83,10 +87,20 @@ table.party-frame th {
   left: -8px;
   bottom: -4px;
   font-family: 'Syncopate', sans-serif;
+  border-collapse: collapse;
 }
 
 tr.player-row {
   height: 52px;
+}
+
+tr.pr-active {
+  cursor: pointer;
+}
+
+tr.pr-active:hover {
+  background: #ffe06460;
+  box-shadow: 0 0 10px #ffe06460;
 }
 
 tr.player-row>td {

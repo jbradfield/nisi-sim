@@ -273,6 +273,13 @@ const DbType = {
 	JUDGMENT: "judgment",
 }
 
+const DbCode = {
+  ALPHA: "alpha",
+  BETA: "beta",
+  GAMME: "gamma",
+  DELTA: "delta",
+}
+
 const Debuffs = {
 	LIGHTNING_VULN: {
 		name: "Lightning Resistance Down II",
@@ -308,48 +315,56 @@ const Debuffs = {
 		name: "Final Decree Nisi α",
 		icon: Images.DB_NISI_ALPHA,
 		type: DbType.NISI,
+    code: DbCode.ALPHA,
 		sortOrder: 3
 	},
 	NISI_BETA: {
 		name: "Final Decree Nisi β",
 		icon: Images.DB_NISI_BETA,
 		type: DbType.NISI,
+    code: DbCode.BETA,
 		sortOrder: 3
 	},
 	NISI_GAMMA: {
 		name: "Final Decree Nisi γ",
 		icon: Images.DB_NISI_GAMMA,
 		type: DbType.NISI,
+    code: DbCode.GAMMA,
 		sortOrder: 3
 	},
 	NISI_DELTA: {
 		name: "Final Decree Nisi δ",
 		icon: Images.DB_NISI_DELTA,
 		type: DbType.NISI,
+    code: DbCode.DELTA,
 		sortOrder: 3
 	},
 	JUDGMENT_ALPHA: {
 		name: "Final Judgment: Decree Nisi α",
 		icon: Images.DB_JUDGMENT_ALPHA,
 		type: DbType.JUDGMENT,
+    code: DbCode.ALPHA,
 		sortOrder: 4
 	},
 	JUDGMENT_BETA: {
 		name: "Final Judgment: Decree Nisi β",
 		icon: Images.DB_JUDGMENT_BETA,
 		type: DbType.JUDGMENT,
+    code: DbCode.BETA,
 		sortOrder: 4
 	},
 	JUDGMENT_GAMMA: {
 		name: "Final Judgment: Decree Nisi γ",
 		icon: Images.DB_JUDGMENT_GAMMA,
 		type: DbType.JUDGMENT,
+    code: DbCode.GAMMA,
 		sortOrder: 4
 	},
 	JUDGMENT_DELTA: {
 		name: "Final Judgment: Decree Nisi δ",
 		icon: Images.DB_JUDGMENT_DELTA,
 		type: DbType.JUDGMENT,
+    code: DbCode.DELTA,
 		sortOrder: 4
 	},	
 }
@@ -394,14 +409,14 @@ class Simulator extends React.Component {
 
   startGame() {
     if (this.state.turn < 20) {
+      assignDebuffs(this.state.party);
+
       this.setState({
         turn: this.state.turn + 1,
+        correctIndex: findBuddyIndex(this.state.party),
         gameState: GameState.RUNNING,
-      });
-
-      assignDebuffs(this.state.party);
+      }, () => console.log(this.state.correctIndex));
     }
-    
   }
   
   render() {
@@ -435,7 +450,7 @@ class Simulator extends React.Component {
             <PartyOrderFrame order={this.state.partyOrder}/>
           </div>
           <ReadyPrompt onClick={() => this.startGame()}/>
-          <PartyFrame party={this.state.party}/>
+          <PartyFrame party={this.state.party} active={false} onClick={() => null}/>
         </div>
       );
     }
@@ -447,7 +462,10 @@ class Simulator extends React.Component {
             <PartyOrderFrame order={this.state.partyOrder}/>
           </div>
           <RunningPrompt/>
-          <PartyFrame party={this.state.party}/>
+          <PartyFrame 
+            party={this.state.party} 
+            active={true}
+            onClick={i => alert(i === this.state.correctIndex ? "yes!" : "no!")}/>
         </div>
       );
     }
@@ -636,7 +654,14 @@ function ReadyPrompt(props) {
 class PartyFrame extends React.Component {
   render() {
     let pData = this.props.party.map((m, i) => {
-        return <Player key={m.job} index={i} data={m}/>;
+        return (
+          <Player 
+            key={m.job} 
+            index={i} 
+            data={m} 
+            active={this.props.active} 
+            onClick={() => this.props.onClick(i)}/>
+        );
       });
 
     return (
@@ -654,6 +679,7 @@ class PartyFrame extends React.Component {
 
 class Player extends React.Component {
   render() {
+    let cName = "player-row" + (this.props.active ? " pr-active" : "");
     let data = this.props.data;
     let idx = this.props.index + 1;
     let debuffs = data.debuffs == null ? null : data.debuffs.map((d, i) => {
@@ -661,7 +687,7 @@ class Player extends React.Component {
     });
 
     return (
-      <tr className="player-row">
+      <tr className={cName} onClick={this.props.onClick}>
         <td>
           <img className="job-icon" src={data.icon} alt={data.job} />
         </td>
@@ -840,4 +866,39 @@ function generateOrderLabel(order) {
     }
   }
   return spans;
+}
+
+function findBuddyIndex(party) {
+  let player = party[0];
+  let targetType, targetCode;
+  let targetRoles = 
+    [Role.TANK, Role.HEALER].includes(player.role) ?
+      [Role.MELEE, Role.RANGED, Role.CASTER] :
+      [Role.TANK, Role.HEALER];
+
+  let playerNisiArr = player.debuffs.filter(d => d.type === DbType.NISI);
+  if (playerNisiArr.length > 0) {
+    targetType = DbType.JUDGMENT;
+    targetCode = playerNisiArr[0].code;
+  }
+  else {
+    let playerJudgmentArr = player.debuffs.filter(d => d.type === DbType.JUDGMENT);
+    targetType = DbType.NISI;
+    targetCode = playerJudgmentArr[0].code;
+  }
+
+  let index = null;
+  for (let i = 1; i < party.length; i++) {
+    if (targetRoles.includes(party[i].role)) {
+      let matches = party[i].debuffs.filter(d => {
+          return d.type === targetType && d.code === targetCode
+      });
+      if (matches.length > 0) {
+        index = i;
+        break;
+      }
+    }
+  }
+
+  return index;
 }
