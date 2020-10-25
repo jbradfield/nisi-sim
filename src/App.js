@@ -229,7 +229,7 @@ const Players = {
     name: "Wonder Shot",
     job: "MCH",
     role: Role.RANGED,
-    icon: Images.JOB_MNK,
+    icon: Images.JOB_MCH,
     sortOrder: 12,
 	debuffs: [],
   },
