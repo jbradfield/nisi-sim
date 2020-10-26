@@ -6,10 +6,7 @@ body {
   background: #f4f4f4;
 }
 
-.App {
-  /* text-align: center; */
-  margin-left: 30px;
-}
+.App {  }
 
 .App-logo {
   height: 40vmin;
@@ -35,6 +32,11 @@ body {
 
 .App-link {
   color: #61dafb;
+}
+
+#root {
+  margin-left: 30px;
+  max-width: 1250px;
 }
 
 @keyframes App-logo-spin {
@@ -67,6 +69,7 @@ img.job-icon-sm {
 div.flex-row {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
 }
 
 table.party-frame {
@@ -285,4 +288,109 @@ div.go-wrapper {
 div.hijacked-prompt {
   align-items: center;
   font-family: 'Share Tech Mono', monospace;
+}
+
+div.countdown-frame {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: crimson;
+}
+
+div.countdown-frame>p {
+  margin: 8px;
+}
+
+p.cd-secs {
+  font-size: 72px;
+}
+
+div.round-result, div.game-result {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  justify-content: space-evenly;
+}
+
+p.incorrect, p.expired {
+  color: crimson;
+}
+
+p.correct {
+  color: green;
+}
+
+div.result-button-wrapper {
+  justify-content: center;
+}
+
+button.result {
+  width: 90px;
+  font-size: 16px;
+  line-height: 16px;
+  padding: 5px;
+  border-radius: 8px;
+  color: white;
+  margin-right: 5px;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+}
+
+button.big-result {
+  width: 185px;
+  font-size: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  color: white;
+  margin-right: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+}
+
+button.to-setup {
+  background: #d70071;
+  border: 3px solid #862759;
+}
+
+button.to-ready {
+  background: #0035a9;
+  border: 2px solid #020d26;
+}
+
+button.next-round, button.to-results {
+  background: #9c4e97;
+  border: 3px solid #73116d;
+}
+
+span.score {
+  font-size: 26px;
+}
+
+p.percent {
+  font-size: 72px;
+  margin: 0;
+}
+
+p.gold {
+  color: darkgoldenrod;
+}
+
+p.green {
+  color: green;
+}
+
+p.red {
+  color: crimson;
 }

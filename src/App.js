@@ -418,7 +418,7 @@ class Simulator extends React.Component {
   goToSetup() {
     this.setState({
       pcJob: null,
-      partOrder: null,
+      partyOrder: null,
       party: null,
       correctIndex: null,
       selectedIndex: null,
@@ -429,7 +429,7 @@ class Simulator extends React.Component {
   }
 
   goToReady() {
-    for (let m in this.state.party) {
+    for (let m of this.state.party) {
       m.debuffs = [];
     }
     this.setState({
@@ -448,15 +448,25 @@ class Simulator extends React.Component {
       this.setState({
         turn: this.state.turn + 1,
         correctIndex: findBuddyIndex(this.state.party),
+        selectedIndex: null,
         gameState: GameState.RUNNING,
-      }, () => console.log(this.state.correctIndex));
+      });
     }
+  }
+
+  endGame() {
+    for (let m of this.state.party) {
+      m.debuffs = [];
+    }
+    this.setState({
+      gameState: GameState.GAME_END,
+    })
   }
 
   pickAnswer(index) {
     this.setState({
       selectedIndex: index,
-      score: (this.correctIndex === index ? this.state.score + 1 : this.state.score),
+      score: (this.state.correctIndex === index ? this.state.score + 1 : this.state.score),
       gameState: GameState.ROUND_END,
     });
   }
@@ -502,6 +512,7 @@ class Simulator extends React.Component {
             <PartyFrame 
               party={this.state.party} 
               active={false}
+              onClick={() => null}
             />
           </div>
         </div>
@@ -540,6 +551,7 @@ class Simulator extends React.Component {
               active={false}
               correct={this.state.correctIndex}
               selected={this.state.selectedIndex}
+              onClick={() => null}
             />
             <ResultFrame 
               correct={this.state.correctIndex}
@@ -548,14 +560,37 @@ class Simulator extends React.Component {
               toNextRound={() => this.startGame()}
               toReady={() => this.goToReady()}
               toSetup={() => this.goToSetup()}
+              toEnd={() => this.endGame()}
             />
           </div>
-
         </div>
       );
     }
     else if (gstate === GameState.GAME_END) {
-      // show final results and prompt for restart/setup
+      return (
+        <div>
+          <div className="flex-row setup-menu">
+            <PlayerJobFrame job={this.state.pcJob}/>
+            <PartyOrderFrame order={this.state.partyOrder}/>
+          </div>
+          <RunningPrompt/>
+          <div className="flex-row">
+            <PartyFrame 
+              party={this.state.party} 
+              active={false}
+              onClick={() => null}
+            />
+            <GameEndFrame 
+              score={this.state.score}
+              turn={this.state.turn}
+              toNextRound={() => this.startGame()}
+              toReady={() => this.goToReady()}
+              toSetup={() => this.goToSetup()}
+              toEnd={() => this.endGame()}
+            />
+          </div>
+        </div>
+      );
     }
   }
 }
@@ -837,8 +872,48 @@ function RunningPrompt(props) {
 }
 
 class CountdownFrame extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      seconds: 8,
+    }
+    this.timer = null;
+    this.countdown = this.countdown.bind(this);
+    this.endTurn = () => props.callback();
+
+  }
+
+  componentDidMount() {
+    if (this.timer == null)
+      this.timer = setInterval(this.countdown, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+
+  countdown() {
+    let s = this.state.seconds - 1;
+    if (s <= 0) {
+      clearInterval(this.timer);
+      this.endTurn();
+    }
+    else {
+      this.setState({
+        seconds: s,
+      });
+    }
+  }
+
   render() {
-    return null;
+    return (
+      <div className="countdown-frame">
+        <p>You have</p>
+        <p className="cd-secs">{this.state.seconds}</p>
+        <p>seconds to find your partner<br/>
+        before Plasma Shield spawns!</p>
+      </div>
+    );
   }
 }
 
@@ -846,26 +921,101 @@ class CountdownFrame extends React.Component {
 // * Round End Phase *
 // *******************
 
-class ResultFrame extends React.Component {
-  render() {
-    let p = this.props;
-    let msg;
-    if (p.selected == null)
-      msg = "You ran out of time. The correct answer is highlighted.";
-    else if (p.correct === p.selected)
-      msg = "Correct!";
-    else
-      msg = "Incorrect. The correct answer is highlighted.";
+function ResultFrame(props) {
+  let p = props;
+  let result;
+  if (p.selected == null)
+    result = <TimeExpiredResult/>;
+  else if (p.correct === p.selected)
+    result = <CorrectResult/>;
+  else
+    result = <IncorrectResult/>;
 
-    return (
+  return (
+    <div className="round-result">
+      {result}
+      {
+        p.turn >= 20 && 
+        <p>You've reached the end of this exercise. Let's see how you did!</p>
+      }
       <div>
-        <p>{msg}</p>
-        <div className="flex-row">
-          <button onClick={p.toNextRound}>Next Round</button>
+        <div className="flex-row result-button-wrapper">
+          {
+            p.turn < 20 &&
+            <button className="big-result next-round" onClick={p.toNextRound}>Next Round</button>
+          }
+          {
+            p.turn >= 20 &&
+            <button className="big-result to-results" onClick={p.toEnd}>Show Results</button>
+          }
         </div>
+        <div className="flex-row result-button-wrapper">
+          <button className="result to-setup" onClick={p.toSetup}>Change Setup</button>
+          <button className="result to-ready" onClick={p.toReady}>Start Over</button>
+        </div>
+      </div> 
+    </div>
+  );
+}
+
+function TimeExpiredResult() {
+  return (
+    <p className="expired">You ran out of time. The correct answer is highlighted.</p>
+  );
+}
+
+function CorrectResult() {
+  return (
+    <p className="correct">Correct!</p>
+  );
+}
+
+function IncorrectResult() {
+  return (
+    <p className="incorrect">Incorrect. The correct answer is highlighted.</p>
+  );
+}
+
+// ******************
+// * Game End Phase *
+// ******************
+
+function GameEndFrame(props) {
+  let score = (props.score * 100) / props.turn;
+  let tier;
+  if (score >= 100) 
+    tier = "gold";
+  else if (score >= 80)
+    tier = "green";
+  else
+    tier = "red"
+
+  return (
+    <div className="game-result">
+      <p>
+        You were correct in <span className="score">{props.score}</span> out of&nbsp; 
+        <span className="score">{props.turn}</span> scenarios.
+      </p>
+      <p>That's good for a score of</p>
+      <p className={"percent " + tier}>{score}%</p>
+      {
+        score >= 100 &&
+        <p>You aced it! Nice job!</p>
+      }
+      {
+        score < 100 && score >= 80 &&
+        <p>Not bad, but you can reach the top for sure!</p>
+      }
+      { 
+        score < 80 && 
+        <p>You still need practice, but I believe in you!</p>
+      }
+      <div className="flex-row result-button-wrapper">
+        <button className="result to-setup" onClick={props.toSetup}>Change Setup</button>
+        <button className="result to-ready" onClick={props.toReady}>Start Over</button>
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 // ===================
@@ -880,7 +1030,6 @@ function shuffleArray(array) {
 }
 
 function generateParty(pcJob, partyOrder) {
-	console.log(pcJob);
   let party = [];
   let numTanks = 2 - (pcJob.role === Role.TANK ? 1 : 0);
   let numHealers = 2 - (pcJob.role === Role.HEALER ? 1 : 0);
@@ -889,27 +1038,27 @@ function generateParty(pcJob, partyOrder) {
   let numCasters = 3 - numMelee - (pcJob.role === Role.CASTER ? 1 : 0);
   numMelee -= (pcJob.role === Role.MELEE ? 1 : 0);
 	// tanks
-	let tanks = Jobs.TANK.slice();
+	let tanks = Jobs.TANK.filter(m => m.job !== pcJob.job);
 	shuffleArray(tanks);
 	for (let i = 0; i < numTanks; i++) 
     party.push({...tanks[i]});
 	// healers
-	let healers = Jobs.HEALER.slice();
+	let healers = Jobs.HEALER.filter(m => m.job !== pcJob.job);
 	shuffleArray(healers);
 	for (let i = 0; i < numHealers; i++) 
     party.push({...healers[i]});
 	// melee
-	let melee = Jobs.MELEE.slice();
+	let melee = Jobs.MELEE.filter(m => m.job !== pcJob.job);
 	shuffleArray(melee);
 	for (let i = 0; i < numMelee; i++) 
     party.push({...melee[i]});
 	// ranged
-	let ranged = Jobs.RANGED.slice();
+	let ranged = Jobs.RANGED.filter(m => m.job !== pcJob.job);
 	shuffleArray(ranged);
   for (let i = 0; i < numRanged; i++)
 	party.push({...ranged[i]});
 	// casters
-	let casters = Jobs.CASTER.slice();
+	let casters = Jobs.CASTER.filter(m => m.job !== pcJob.job);
 	shuffleArray(casters);
 	for (let i = 0; i < numCasters; i++) 
     party.push({...casters[i]});
