@@ -753,7 +753,7 @@ function ReadyPrompt(props) {
           that represent a possible state right after Brute Justice casts Verdict.</p>
           <p>You will have <strong>8 seconds</strong> to identify and click your
           partner, which is the amount of time between Verdict resolving and Plasma
-          shield spawning.</p>
+          Shield spawning.</p>
           <p>This exercise will repeat 20 times, or until you choose to quit. At the
           end of your session, I'll count up your successes and give you a score. Aim
           for the top!</p>
